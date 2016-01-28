@@ -1,0 +1,8 @@
+*.log
+.envrc
+.tmp/
+bundle.js
+index.html
+lib/
+node_modules/
+typings/
