@@ -11,6 +11,7 @@
     "url": "https://github.com/bouzuya/my-cycle/issues"
   },
   "dependencies": {
+    "matches-selector": "^1.0.0",
     "rxjs": "5.0.0-beta.1",
     "vdom-parser": "1.2.1",
     "virtual-dom": "2.1.1"

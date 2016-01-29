@@ -9,3 +9,8 @@ declare module 'vdom-parser' {
   var parse: any;
   export default parse;
 }
+
+declare module 'matches-selector' {
+  var selector: any;
+  export default selector;
+}
