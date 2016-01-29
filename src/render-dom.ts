@@ -30,6 +30,7 @@ import {
 } from 'rxjs';
 import { pairwise } from 'rxjs/operator/pairwise';
 import { h, diff, parse, patch, VTree, RTree } from './virtual-dom';
+import matchesSelector from 'matches-selector';
 
 type Source = any;
 type Sink = Observable<any>;
@@ -89,19 +90,47 @@ const makeDOMDriver = (container: string): Driver => {
       .scan<RTree>(render, rtree)
       .multicast(new ReplaySubject(1));
     const subscription = rtree$.connect();
+    const queries: string[] = [];
     const source = {
-      events: makeEvents(rtree$)
+      events: makeEvents(rtree$, queries),
+      select: makeSelect(rtree$, queries),
+      unsubscribe: () => subscription.unsubscribe()
     };
     return source;
   };
   return domDriver;
 };
 
-const makeEvents = (rtree$: Observable<RTree>) => {
+const makeMatchesEvent = (root: Element, query: string) => {
+  return (event: Event) => {
+    if (query.length === 0) return true;
+    const start = <Element> event.target;
+    const end = root.parentElement;
+    for (let el = start; el && el !== end; el = el.parentElement) {
+      if (matchesSelector(el, query)) return true;
+    }
+    return false;
+  };
+};
+
+const makeEvents = (rtree$: Observable<RTree>, queries: string[]) => {
   return (eventName: string): Observable<Event> => {
     return rtree$
-      .switchMap<Event>(root => Observable.fromEvent(root, eventName))
+      .switchMap<Event>(root => {
+        return Observable
+          .fromEvent<Event>(root, eventName)
+          .filter(makeMatchesEvent(root, queries.join(' ')));
+      })
       .share();
+  };
+};
+
+const makeSelect = (rtree$: Observable<RTree>, queries: string[]) => {
+  return (query: string): {} => {
+    return {
+      events: makeEvents(rtree$, queries.concat([query])),
+      select: makeSelect(rtree$, queries.concat([query]))
+    };
   };
 };
 

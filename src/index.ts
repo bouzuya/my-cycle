@@ -9,7 +9,7 @@ type Actions = { [actionName: string]: Observable<any> };
 
 const intent = (sources: Sources): Actions => {
   const { DOM } = sources;
-  const click$: Observable<Event> = DOM.events('click');
+  const click$: Observable<Event> = DOM.select('button').events('click');
   const actions: Actions = { click$ };
   return actions;
 };
@@ -36,7 +36,10 @@ const model = (actions: Actions): Observable<State> => {
 
 const view = (state$: Observable<State>): Sinks => {
   const vtree$ = state$.map(({ count }) => {
-    return h('div.count', ['' + count])
+    return h('div', [
+      h('button', { type: 'button' }, ['click']),
+      h('div.count', ['' + count])
+    ]);
   });
   const sinks: Sinks = { DOM: vtree$ };
   return sinks;
