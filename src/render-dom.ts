@@ -90,11 +90,19 @@ const makeDOMDriver = (container: string): Driver => {
       .multicast(new ReplaySubject(1));
     const subscription = rtree$.connect();
     const source = {
-      // TODO
+      events: makeEvents(rtree$)
     };
     return source;
   };
   return domDriver;
+};
+
+const makeEvents = (rtree$: Observable<RTree>) => {
+  return (eventName: string): Observable<Event> => {
+    return rtree$
+      .switchMap<Event>(root => Observable.fromEvent(root, eventName))
+      .share();
+  };
 };
 
 export { makeDOMDriver };

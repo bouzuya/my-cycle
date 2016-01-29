@@ -9,19 +9,28 @@ type Actions = { [actionName: string]: Observable<any> };
 
 const intent = (sources: Sources): Actions => {
   const { DOM } = sources;
-  // const click$: Observable<Event> = DOM.select('input').events('click');
-  const click$ = Observable.interval(1000);
+  const click$: Observable<Event> = DOM.events('click');
   const actions: Actions = { click$ };
   return actions;
 };
 
 const model = (actions: Actions): Observable<State> => {
   const { click$ } = actions;
-  const state$ = click$
-  .scan((sum: number) => sum + 1, 0)
-  .map((count: number) => ({ count }))
-  .multicast(new ReplaySubject(1))
-  .refCount();
+  const initialState: State = { count: 0 };
+  const transform = <T, U>(f: (v: T, s: State) => U) =>
+    (value: T) =>
+      (state: State): State =>
+        Object.assign({}, state, f(value, state));
+  const action$ = Observable
+    .merge(
+      click$.map(transform((_, { count }) => ({ count: count + 1 })))
+    );
+  const state$ = Observable
+    .of(initialState)
+    .merge(action$)
+    .scan((state, action) => action(state))
+    .multicast(new ReplaySubject(1))
+    .refCount();
   return state$;
 };
 
