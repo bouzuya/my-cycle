@@ -1,0 +1,10 @@
+<!doctype html
+<html
+  <head
+    <title
+      my-cycle
+  <body
+    <div
+      @id app
+    <script
+      @src bundle.js
